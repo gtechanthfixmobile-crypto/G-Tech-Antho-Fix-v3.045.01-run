@@ -1,0 +1,1725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GT-AnthoFix (G'sTAF AI V3.0.3256)</title>
+<!-- PUTER.JS SDK -->
+<script src="https://js.puter.com/v2/"></script>
+<!-- JSPDF & AUTOTABLE FOR CLIENT-SIDE PDF GENERATION -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+<style>
+  :root {
+    --primary: #0F172A;
+    --primary-accent: #6366F1;
+    --primary-hover: #4F46E5;
+    --bg: #090D16;
+    --surface: rgba(15, 23, 42, 0.95);
+    --surface-solid: #1E293B;
+    --surface-light: rgba(51, 65, 85, 0.4);
+    --text: #F8FAFC;
+    --text-muted: #94A3B8;
+    --me-bubble: #1E293B;
+    --bot-bubble: #111827;
+    --accent-gold: #F59E0B;
+    --border: rgba(255, 255, 255, 0.08);
+    --border-light: rgba(255, 255, 255, 0.12);
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+    --code-bg: #030712;
+    --table-header: #1E1B4B;
+  }
+
+  [data-theme="light"] {
+    --primary: #FFFFFF;
+    --primary-accent: #4338CA;
+    --primary-hover: #3730A3;
+    --bg: #F8FAFC;
+    --surface: #FFFFFF;
+    --surface-solid: #F1F5F9;
+    --surface-light: #E2E8F0;
+    --text: #0F172A;
+    --text-muted: #475569;
+    --me-bubble: #DCF8C6;
+    --bot-bubble: #FFFFFF;
+    --accent-gold: #D97706;
+    --border: #E2E8F0;
+    --border-light: #CBD5E1;
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    --code-bg: #0F172A;
+    --table-header: #EEF2FF;
+  }
+
+  * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; padding: 0; user-select: none; }
+  body { background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; transition: background 0.3s, color 0.3s; overflow: hidden; width: 100%; }
+
+  /* ONBOARDING OVERLAY */
+  #onboardingOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    background: #000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .bg-video-frame {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: blur(8px) brightness(0.3);
+    transform: scale(1.05);
+    z-index: 1;
+  }
+  .onboarding-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    text-align: center;
+    padding: 20px;
+  }
+  .onboarding-logo {
+    width: 70px;
+    height: 70px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #6366F1, #F59E0B);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #FFF;
+    font-weight: 900;
+    font-size: 36px;
+    box-shadow: 0 0 25px rgba(99, 102, 241, 0.5);
+  }
+  .onboarding-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #FFF;
+  }
+  .skip-btn {
+    margin-top: 10px;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: #FFF;
+    padding: 8px 18px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  /* TOAST NOTIFICATIONS */
+  #toastContainer {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    pointer-events: none;
+  }
+  .toast-bubble {
+    pointer-events: auto;
+    background: var(--surface-solid);
+    color: var(--text);
+    border: 1px solid var(--border-light);
+    border-left: 4px solid var(--primary-accent);
+    padding: 10px 16px;
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    font-size: 13px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    animation: toastIn 0.25s ease-out forwards;
+  }
+  .toast-bubble.toast-success { border-left-color: #10B981; }
+  .toast-bubble.toast-warning { border-left-color: var(--accent-gold); }
+  .toast-bubble.toast-error { border-left-color: #EF4444; }
+  @keyframes toastIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* HEADER & BRANDING */
+  .header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; z-index: 100; box-shadow: var(--shadow); }
+  .brand { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 16px; color: var(--text); }
+  .brand-logo { width: 30px; height: 30px; border-radius: 8px; background: linear-gradient(135deg, #6366F1, #F59E0B); display: flex; align-items: center; justify-content: center; color: #FFF; font-weight: 900; font-size: 15px; }
+  .brand span { color: var(--accent-gold); }
+  
+  .mode-pills { display: flex; gap: 6px; overflow-x: auto; padding: 2px; scrollbar-width: none; }
+  .mode-pills::-webkit-scrollbar { display: none; }
+  .mode-pill { padding: 5px 12px; background: var(--surface-light); border: 1px solid var(--border-light); border-radius: 16px; color: var(--text-muted); cursor: pointer; font-size: 12px; font-weight: 600; white-space: nowrap; transition: all 0.2s; }
+  .mode-pill:hover { color: var(--text); border-color: var(--primary-accent); }
+  .mode-pill.active { background: var(--primary-accent); color: white; border-color: var(--primary-accent); }
+  
+  .header-actions { display: flex; gap: 6px; align-items: center; }
+  .icon-btn { background: var(--surface-light); border: 1px solid var(--border-light); font-size: 15px; cursor: pointer; color: var(--text); width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+  .icon-btn:active { transform: scale(0.95); }
+
+  /* SEARCH BAR */
+  .toolbar-wrapper { background: var(--surface); border-bottom: 1px solid var(--border); display: flex; flex-direction: column; }
+  .search-filter-bar { display: flex; gap: 8px; padding: 6px 16px; align-items: center; }
+  .search-filter-bar input { flex: 1; background: var(--bg); border: 1px solid var(--border-light); color: var(--text); padding: 5px 12px; border-radius: 8px; font-size: 12px; outline: none; }
+  .search-filter-bar input:focus { border-color: var(--primary-accent); }
+  .filter-status { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+
+  /* CHAT WORKSPACE */
+  .chat-container { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; background: var(--bg); scroll-behavior: smooth; }
+  
+  .msg-row { display: flex; flex-direction: column; width: 100%; position: relative; }
+  .msg-row.me-row { align-items: flex-end; }
+  .msg-row.bot-row { align-items: flex-start; }
+
+  /* META AI / WHATSAPP STYLE CHAT BUBBLES */
+  .msg { 
+    max-width: clamp(260px, 85%, 750px); 
+    padding: 10px 14px; 
+    border-radius: 4px; 
+    line-height: 1.5; 
+    font-size: 14px; 
+    word-wrap: break-word; 
+    word-break: break-word;
+    user-select: text; 
+    color: var(--text);
+    position: relative;
+    border: 1px solid var(--border-light);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  }
+  
+  .me { 
+    background: var(--me-bubble); 
+    color: var(--text);
+    border-top-right-radius: 0px; 
+    border-left: 3px solid var(--primary-accent);
+  }
+
+  [data-theme="light"] .me {
+    color: #0F172A;
+  }
+
+  .bot { 
+    background: var(--bot-bubble); 
+    border-top-left-radius: 0px; 
+    border-left: 3px solid var(--accent-gold);
+  }
+
+  .quoted-reply-box { 
+    background: rgba(0, 0, 0, 0.2); 
+    border-left: 3px solid var(--accent-gold); 
+    padding: 4px 8px; 
+    border-radius: 2px; 
+    font-size: 11px; 
+    margin-bottom: 6px; 
+    max-height: 24px; 
+    overflow: hidden; 
+    white-space: nowrap;
+    text-overflow: ellipsis; 
+    display: block;
+    cursor: pointer;
+  }
+
+  .chat-link { color: #38BDF8; text-decoration: underline; font-weight: 500; word-break: break-all; }
+
+  /* STREAMING TEXT FADE ANIMATION */
+  .word-span {
+    display: inline;
+    animation: fadeInWord 0.2s ease-out forwards;
+  }
+  @keyframes fadeInWord {
+    from { opacity: 0; transform: translateY(2px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ISOLATED CODE BLOCK CONTAINER */
+  .code-container {
+    background: var(--code-bg);
+    border: 1px solid var(--border-light);
+    border-radius: 4px;
+    margin: 8px 0;
+    overflow: hidden;
+    user-select: text;
+  }
+  .code-header {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 6px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-light);
+    font-size: 11px;
+    color: var(--text-muted);
+    font-family: monospace;
+  }
+  .code-copy-btn {
+    background: var(--primary-accent);
+    color: #FFFFFF;
+    border: none;
+    padding: 3px 8px;
+    border-radius: 2px;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .code-body {
+    padding: 10px 12px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    color: #38BDF8;
+    overflow-x: auto;
+    white-space: pre-wrap;
+  }
+
+  /* DEDICATED HTML TABLE SYSTEM */
+  .table-container-card {
+    margin: 12px 0;
+    border: 1px solid var(--border-light);
+    border-radius: 4px;
+    background: var(--surface-solid);
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .table-toolbar {
+    background: var(--surface-light);
+    padding: 6px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-light);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent-gold);
+  }
+  .table-action-group {
+    display: flex;
+    gap: 6px;
+  }
+  .tbl-btn {
+    background: var(--primary-accent);
+    color: #FFF;
+    border: none;
+    padding: 3px 8px;
+    border-radius: 2px;
+    cursor: pointer;
+    font-size: 10.5px;
+    font-weight: 600;
+  }
+  .table-scroll-wrapper {
+    overflow-x: auto;
+    width: 100%;
+  }
+  .custom-data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+    text-align: left;
+  }
+  .custom-data-table th {
+    background: var(--table-header);
+    color: var(--text);
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border-light);
+    font-weight: 700;
+  }
+  .custom-data-table td {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border-light);
+    color: var(--text);
+  }
+
+  .msg-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 6px; font-size: 10px; color: var(--text-muted); opacity: 0.9; }
+  .msg-footer-actions { display: flex; gap: 8px; align-items: center; }
+  .copy-btn, .tts-btn, .pin-btn, .reply-btn { background: none; border: none; color: inherit; cursor: pointer; font-size: 11px; opacity: 0.75; font-weight: 500; }
+  .copy-btn:hover, .tts-btn:hover, .pin-btn:hover, .reply-btn:hover { opacity: 1; text-decoration: underline; }
+  .pinned-badge { color: var(--accent-gold); font-size: 10px; font-weight: 700; margin-right: 4px; }
+
+  /* MEDIA CARDS */
+  .video-embed-card { margin-top: 8px; border-radius: 4px; overflow: hidden; border: 1px solid var(--border-light); background: #000; width: 100%; max-width: 420px; aspect-ratio: 16 / 9; }
+  .video-embed-card iframe { width: 100%; height: 100%; border: none; }
+  .video-fallback-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+  .action-chip { display: inline-flex; align-items: center; gap: 4px; background: var(--surface-light); color: var(--text); padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; text-decoration: none; border: 1px solid var(--border-light); }
+
+  .generated-image-card { margin-top: 8px; border-radius: 4px; overflow: hidden; border: 1px solid var(--border-light); background: var(--surface-solid); max-width: 100%; }
+  .generated-image-card img { width: 100%; height: auto; display: block; }
+
+  .reply-preview { display: none; background: var(--surface); border-left: 3px solid var(--primary-accent); padding: 6px 14px; font-size: 12px; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); height: 32px; overflow: hidden; }
+  .reply-preview span { text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 85%; color: var(--text); }
+  .reply-preview close { cursor: pointer; font-weight: bold; color: var(--accent-gold); padding: 2px 6px; }
+
+  /* INPUT DOCK */
+  .input-dock { display: flex; padding: 10px 14px; background: var(--surface); gap: 8px; border-top: 1px solid var(--border); align-items: center; }
+  .input-dock input { flex: 1; border: 1px solid var(--border-light); padding: 10px 16px; border-radius: 24px; outline: none; background: var(--bg); color: var(--text); font-size: 13.5px; }
+  .input-dock input:focus { border-color: var(--primary-accent); }
+  .input-dock button { background: var(--primary-accent); color: white; border: none; padding: 10px 18px; border-radius: 24px; cursor: pointer; font-weight: 600; font-size: 13px; }
+  
+  .voice-btn { background: var(--surface-light); border: 1px solid var(--border-light); color: var(--text); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; flex-shrink: 0; }
+  .voice-btn.recording { background: #EF4444; color: white; border-color: #EF4444; animation: pulseRecord 1.2s infinite; }
+  @keyframes pulseRecord { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+
+  #ttsControlBar { display: none; background: var(--surface-solid); border-top: 1px solid var(--border-light); padding: 6px 16px; align-items: center; justify-content: space-between; font-size: 11.5px; color: var(--accent-gold); }
+  #ttsControlBar button { background: var(--primary-accent); border: none; color: white; padding: 3px 10px; border-radius: 10px; cursor: pointer; font-size: 11px; font-weight: 600; }
+
+  /* ACTION DRAWER MENU */
+  .menu-drawer { position: fixed; top: 0; right: -300px; width: 300px; height: 100%; background: var(--surface-solid); border-left: 1px solid var(--border); box-shadow: var(--shadow); z-index: 1000; transition: right 0.3s ease; padding: 20px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
+  .menu-drawer.open { right: 0; }
+  .menu-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 10px; color: var(--text); }
+  .menu-header h3 { font-size: 15px; font-weight: 700; }
+  .menu-item { background: var(--bg); border: 1px solid var(--border-light); color: var(--text); padding: 10px 12px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; gap: 10px; font-size: 12.5px; font-weight: 600; }
+  .drawer-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5); z-index: 999; display: none; }
+  .drawer-overlay.active { display: block; }
+
+  .user-auth-badge { background: var(--surface-light); border: 1px solid var(--border-light); padding: 10px; border-radius: 10px; font-size: 11.5px; color: var(--accent-gold); display: flex; justify-content: space-between; align-items: center; }
+
+  /* LONG PRESS / CONTEXT MENU ACTION SHEET */
+  .context-sheet-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 30000;
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .context-sheet-overlay.active { display: flex; }
+  .context-sheet {
+    background: var(--surface-solid);
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+    width: 100%;
+    max-width: 500px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    box-shadow: var(--shadow);
+    animation: slideUp 0.2s ease-out forwards;
+  }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .context-action-btn {
+    background: var(--bg);
+    border: 1px solid var(--border-light);
+    color: var(--text);
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+  }
+  .context-action-btn:active { background: var(--surface-light); }
+
+  /* MODALS */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6); z-index: 20000; display: none; align-items: center; justify-content: center; padding: 16px; }
+  .modal-overlay.active { display: flex; }
+  .modal-card { background: var(--surface-solid); border: 1px solid var(--border-light); border-radius: 14px; width: 100%; max-width: 460px; max-height: 80vh; display: flex; flex-direction: column; box-shadow: var(--shadow); overflow: hidden; color: var(--text); }
+  .modal-header { padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+  .modal-body { padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+
+  .typing-dots span { height: 6px; width: 6px; float: left; margin: 0 2px; background-color: var(--text-muted); border-radius: 50%; display: inline-block; animation: bounce 1.3s infinite ease-in-out; }
+  .typing-dots span:nth-child(2) { animation-delay: -1.1s; }
+  .typing-dots span:nth-child(3) { animation-delay: -0.9s; }
+  @keyframes bounce { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-4px); } }
+</style>
+</head>
+<body data-theme="dark">
+
+<!-- ONBOARDING OVERLAY -->
+<div id="onboardingOverlay" style="display: none;">
+  <video class="bg-video-frame" autoplay loop muted playsinline>
+    <source src="https://assets.mixkit.co/videos/preview/mixkit-tech-abstract-background-animation-31517-large.mp4" type="video/mp4">
+  </video>
+  <div class="onboarding-content">
+    <div class="onboarding-logo">G</div>
+    <div class="onboarding-title" id="onboardingText">G-Tech-Antho-Fix.</div>
+    <button class="skip-btn" onclick="completeOnboarding()">Skip to Chat</button>
+  </div>
+</div>
+
+<div id="toastContainer"></div>
+
+<!-- HEADER BAR -->
+<div class="header">
+  <div class="brand">
+    <div class="brand-logo">G</div>
+    GT-AnthoFix <span>AI</span>
+  </div>
+  
+  <div class="mode-pills">
+    <button class="mode-pill active" onclick="switchMode('customer', event)">Customer</button>
+    <button class="mode-pill" onclick="switchMode('student', event)">Student / Learner</button>
+    <button class="mode-pill" onclick="switchMode('repair', event)">Employees</button>
+  </div>
+
+  <div class="header-actions">
+    <button class="icon-btn" onclick="toggleMenu()" title="Open Menu">⋮</button>
+  </div>
+</div>
+
+<!-- SEARCH TOOLBAR -->
+<div class="toolbar-wrapper">
+  <div class="search-filter-bar">
+    <input type="text" id="chatSearchInput" placeholder="🔍 Search current chat messages..." oninput="filterChatMessages()">
+    <span class="filter-status" id="filterStatus"></span>
+  </div>
+</div>
+
+<!-- CHAT WORKSPACE -->
+<div class="chat-container" id="chatBox"></div>
+
+<!-- TTS CONTROL BAR -->
+<div id="ttsControlBar">
+  <span id="ttsStatusText">🔊 Speaking response...</span>
+  <div style="display: flex; gap: 6px;">
+    <button id="ttsPauseBtn" onclick="toggleTTSPause()">Pause</button>
+    <button onclick="stopTTS()">Stop</button>
+  </div>
+</div>
+
+<!-- REPLY PREVIEW BANNER -->
+<div class="reply-preview" id="replyPreview">
+  <span id="replyPreviewText">Replying to message...</span>
+  <close onclick="cancelReply()">✕</close>
+</div>
+
+<!-- INPUT DOCK -->
+<div class="input-dock">
+  <input type="text" id="userInput" placeholder="Ask live online AI or generate an image..." autocomplete="off" oninput="handleInputChange()" onclick="handleInputChange()">
+  <button id="actionBtn" class="voice-btn" onclick="handleActionButtonClick()" title="Voice Input">🎤</button>
+</div>
+
+<!-- ACTION DRAWER MENU -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="toggleMenu()"></div>
+<div class="menu-drawer" id="menuDrawer">
+  <div class="menu-header">
+    <h3>System Control</h3>
+    <button class="icon-btn" onclick="toggleMenu()">✕</button>
+  </div>
+
+  <div class="user-auth-badge" id="authBadge">
+    <span id="authBadgeText">Session: Guest Mode</span>
+    <button id="authBtnAction" style="background: var(--primary-accent); border: none; color: white; padding: 4px 10px; border-radius: 8px; font-size: 11px; cursor: pointer; font-weight: 600;" onclick="handleAuthAction()">Sign In</button>
+  </div>
+
+  <div class="menu-item" onclick="openStudentCameraScanner()">
+    <span>📷</span> Student Question Scanner (OCR)
+  </div>
+  <div class="menu-item" onclick="openExportModal()">
+    <span>📥</span> Export Selected Content
+  </div>
+  <div class="menu-item" onclick="showUpdatesModal()">
+    <span>🔔</span> Get Updates
+  </div>
+  <div class="menu-item" onclick="window.open('https://tiktok.com/@godfreyanthony682', '_blank')">
+    <span>🎵</span> Follow on TikTok (@godfreyanthony682)
+  </div>
+  <div class="menu-item" onclick="toggleTheme()">
+    <span>🌙 / ☀️</span> Toggle Light/Dark Theme
+  </div>
+  <div class="menu-item" onclick="showPinnedMessagesModal()">
+    <span>📌</span> View Pinned Messages
+  </div>
+  <div class="menu-item" onclick="clearCurrentChat()">
+    <span>🗑️</span> Clear Active Chat
+  </div>
+</div>
+
+<!-- LONG-PRESS / CONTEXT MENU ACTION SHEET -->
+<div class="context-sheet-overlay" id="contextSheetOverlay" onclick="closeContextMenu()">
+  <div class="context-sheet" onclick="event.stopPropagation()">
+    <div style="font-size: 11px; color: var(--text-muted); text-align: center; margin-bottom: 4px;">MESSAGE OPTIONS</div>
+    <div class="context-action-btn" onclick="triggerContextAction('reply')">↩️ Reply to Message</div>
+    <div class="context-action-btn" onclick="triggerContextAction('copy')">📋 Copy Text</div>
+    <div class="context-action-btn" onclick="triggerContextAction('tts')">🔊 Read Aloud (TTS)</div>
+    <div class="context-action-btn" onclick="triggerContextAction('pin')">📌 Pin / Unpin Message</div>
+  </div>
+</div>
+
+<!-- CAMERA OCR SCANNER MODAL -->
+<div class="modal-overlay" id="cameraModal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h4>📷 Student Question Scanner</h4>
+      <button class="icon-btn" onclick="closeStudentCameraScanner()">✕</button>
+    </div>
+    <div class="modal-body" style="align-items: center; text-align: center;">
+      <video id="cameraStream" autoplay playsinline style="width: 100%; max-height: 220px; border-radius: 10px; background: #000;"></video>
+      <canvas id="cameraCanvas" style="display:none;"></canvas>
+      <button style="background: var(--primary-accent); color: white; border: none; padding: 8px 18px; border-radius: 18px; font-weight: 600; cursor: pointer;" onclick="captureAndScanImage()">Scan Question</button>
+      <div id="ocrStatus" style="font-size: 11px; color: var(--accent-gold);">Ready to scan...</div>
+    </div>
+  </div>
+</div>
+
+<!-- EXPORT MODAL -->
+<div class="modal-overlay" id="exportModal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h4>📥 Dedicated Export Formats</h4>
+      <button class="icon-btn" onclick="closeExportModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size: 11.5px; color: var(--text-muted);">Select export format for pinned content:</div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+        <button class="menu-item" onclick="processExport('text')">📄 Plain Text (.txt)</button>
+        <button class="menu-item" onclick="processExport('pdf')">📕 Dynamic PDF Document</button>
+        <button class="menu-item" onclick="processExport('table')">📊 Formatted HTML Table</button>
+        <button class="menu-item" onclick="processExport('audio')">🎵 Synthesized Audio (TTS)</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- GET UPDATES MODAL -->
+<div class="modal-overlay" id="updatesModal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h4>🔔 G'sTAF Release Updates</h4>
+      <button class="icon-btn" onclick="closeUpdatesModal()">✕</button>
+    </div>
+    <div class="modal-body" style="font-size: 12.5px; line-height: 1.5;">
+      <strong>Version V3.0.3256 Architecture Integration:</strong><br>
+      * Meta AI / WhatsApp straight-edged message bubble architecture.<br>
+      * Optimized speech synthesis filter with fluid TTS reading.<br>
+      * Long-press action sheet overlay for quick message actions.<br>
+      * Isolated syntax code containers & single-click table PDF/CSV exports.
+    </div>
+  </div>
+</div>
+
+<!-- PINNED MESSAGES MODAL -->
+<div class="modal-overlay" id="pinnedModal">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h4>📌 Pinned Messages</h4>
+      <button class="icon-btn" onclick="hidePinnedMessagesModal()">✕</button>
+    </div>
+    <div class="modal-body" id="pinnedModalBody">
+      <div style="color: var(--text-muted); font-size: 12px;">No pinned messages found.</div>
+    </div>
+  </div>
+</div>
+
+<!-- CUSTOM ALERT MODAL -->
+<div class="modal-overlay" id="customAlertModal">
+  <div class="modal-card" style="max-width: 380px; text-align: center;">
+    <div class="modal-header" style="justify-content: center;">
+      <h4 id="customAlertTitle" style="color: var(--accent-gold);">GT-AnthoFix AI</h4>
+    </div>
+    <div class="modal-body" id="customAlertMessage" style="font-size: 13px; line-height: 1.4; padding: 16px;"></div>
+    <div style="padding: 12px; border-top: 1px solid var(--border); display: flex; gap: 8px; justify-content: center;">
+      <button id="customAlertCancelBtn" style="display:none; background: var(--surface-light); color: var(--text); border: 1px solid var(--border-light); padding: 6px 16px; border-radius: 16px; cursor: pointer; font-weight: 600;" onclick="closeCustomAlert(false)">Cancel</button>
+      <button id="customAlertConfirmBtn" style="background: var(--primary-accent); color: white; border: none; padding: 6px 20px; border-radius: 16px; cursor: pointer; font-weight: 600;" onclick="closeCustomAlert(true)">OK</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentMode = 'customer';
+let activeReply = null;
+let searchQuery = '';
+let isRecording = false;
+let recognition = null;
+let currentToast = null;
+let chatMessages = [];
+let voiceSilenceTimer = null;
+let buttonState = 'voice';
+let customAlertResolver = null;
+let isTTSPaused = false;
+let cameraStreamObj = null;
+let onboardingTimer = null;
+let isVoiceTriggered = false;
+let globalAudioState = 'IDLE'; 
+let longPressTimer = null;
+let activeContextMsgId = null;
+
+const companyCoreKnowledge = `
+You are the official AI Assistant for G-TECH-ANTHO-FIX, also known as G'sTAF V3.0.3256.
+
+COMPANY IDENTITY & PROTOCOLS:
+- System Name: G-TECH-ANTHO-FIX (G'sTAF)
+- Version: V3.0.3256
+- Founder: Engineer Godfrey Anthony
+- Founded: 12th September 2026
+- Location: Asaba, Delta State, Nigeria
+- Core Mission: Educate, assist, connect people, and build modern hardware/software solutions.
+
+PLATFORM WORKFLOW & MULTI-MEDIA ARCHITECTURE:
+1. Learning Platform: Assists Grade 7-12 students with STEM, Physics, Chemistry, Economics, Coding, and Robotics.
+2. Creator Platform: Fast creator verification (< 2 days). Payment rate: ₦0.15 per view based on watch time.
+3. Service Connector: Links developers to clients and hardware technicians to nearby diagnostic requests.
+4. Dynamic AI Capabilities:
+   - Text Streaming: Smooth word-by-word fade rendering.
+   - Code Formatting: Isolate code into dedicated syntax containers with raw code copy capabilities.
+   - Dynamic HTML Tables: Render structured tabular data inside custom table containers with single-click PDF, CSV, and HTML exports.
+   - Image & Media Generation: Puter AI text-to-image and video media integration.
+`;
+
+const modePrompts = {
+  customer: companyCoreKnowledge + "\nCURRENT ACTIVE MODE: Customer & General Support. Be helpful, concise, and professional.",
+  student: companyCoreKnowledge + "\nCURRENT ACTIVE MODE: Student / Learner Studio AI. Provide step-by-step explanations, clear math formulas, and study breakdowns.",
+  repair: companyCoreKnowledge + "\nCURRENT ACTIVE MODE: Employees & Repair Diagnostic Hub. Focus on technical hardware troubleshooting, component testing, and pinout diagrams."
+};
+
+function getSystemTelemetry() {
+  const now = new Date();
+  return `[System Context: Date/Time=${now.toLocaleString()}, Location/TZ=${Intl.DateTimeFormat().resolvedOptions().timeZone}, Browser=${navigator.userAgent}]`;
+}
+
+async function checkAuthState() {
+  const badgeText = document.getElementById('authBadgeText');
+  const btnAction = document.getElementById('authBtnAction');
+
+  if (typeof puter === 'undefined' || !puter.auth) {
+    if (badgeText) badgeText.innerText = 'Session: Guest Mode';
+    if (btnAction) btnAction.innerText = 'Sign In';
+    return;
+  }
+
+  try {
+    const authPromise = new Promise((resolve) => {
+      try {
+        if (puter.auth.isSignedIn()) {
+          puter.auth.getUser().then(user => {
+            resolve(user ? (user.username || 'Authenticated User') : 'Authenticated User');
+          }).catch(() => resolve(null));
+        } else {
+          resolve(null);
+        }
+      } catch (err) { resolve(null); }
+    });
+
+    const timeoutPromise = new Promise((resolve) => setTimeout(() => resolve(null), 2500));
+    const userName = await Promise.race([authPromise, timeoutPromise]);
+
+    if (userName) {
+      if (badgeText) badgeText.innerText = `Logged In: ${userName}`;
+      if (btnAction) btnAction.innerText = 'Sign Out';
+    } else {
+      if (badgeText) badgeText.innerText = 'Session: Guest Mode';
+      if (btnAction) btnAction.innerText = 'Sign In';
+    }
+  } catch (e) {
+    if (badgeText) badgeText.innerText = 'Session: Guest Mode';
+    if (btnAction) btnAction.innerText = 'Sign In';
+  }
+}
+
+async function handleAuthAction() {
+  if (typeof puter === 'undefined' || !puter.auth) {
+    showToast('Puter SDK initializing. Please wait...', 'info');
+    return;
+  }
+
+  try {
+    if (puter.auth.isSignedIn()) {
+      await puter.auth.signOut();
+      showToast('Signed out successfully.', 'info');
+    } else {
+      showToast('Opening sign-in window...', 'info');
+      await puter.auth.signIn();
+      showToast('Signed in successfully!', 'success');
+    }
+  } catch (err) {
+    showToast('Session updated.', 'info');
+  }
+  checkAuthState();
+}
+
+function initBatteryMonitoring() {
+  if ('getBattery' in navigator) {
+    navigator.getBattery().then(battery => {
+      function checkBatteryStatus() {
+        const level = Math.round(battery.level * 100);
+        if (level <= 20 && !battery.charging) {
+          showToast(`⚠️ Low Battery Warning: Device at ${level}%. Please connect charger.`, 'warning', 5000);
+        }
+      }
+      checkBatteryStatus();
+      battery.addEventListener('levelchange', checkBatteryStatus);
+      battery.addEventListener('chargingchange', checkBatteryStatus);
+    });
+  }
+}
+
+async function triggerOnboardingFlow() {
+  const hasCompleted = sessionStorage.getItem('gstaf_onboarded');
+  if (!hasCompleted) {
+    const overlay = document.getElementById('onboardingOverlay');
+    overlay.style.display = 'flex';
+    let dots = 1;
+    onboardingTimer = setInterval(() => {
+      dots = (dots % 3) + 1;
+      document.getElementById('onboardingText').innerText = 'G-Tech-Antho-Fix' + '.'.repeat(dots);
+    }, 600);
+
+    setTimeout(() => { completeOnboarding(); }, 3500);
+  } else {
+    checkAuthState();
+  }
+}
+
+async function completeOnboarding() {
+  clearInterval(onboardingTimer);
+  document.getElementById('onboardingOverlay').style.display = 'none';
+  sessionStorage.setItem('gstaf_onboarded', 'true');
+  checkAuthState();
+}
+
+function initAppState() {
+  document.documentElement.style.width = '100%';
+  document.body.style.width = '100%';
+
+  const savedTheme = localStorage.getItem('gt_theme') || 'dark';
+  document.body.setAttribute('data-theme', savedTheme);
+
+  const savedLogs = localStorage.getItem('gt_chat_logs');
+  if (savedLogs) {
+    try { chatMessages = JSON.parse(savedLogs); } catch (e) { chatMessages = []; }
+  }
+
+  renderChatHistory();
+
+  if (chatMessages.length === 0) {
+    triggerInitialGreeting();
+  }
+
+  initBatteryMonitoring();
+  triggerOnboardingFlow();
+}
+
+function saveState() {
+  localStorage.setItem('gt_chat_logs', JSON.stringify(chatMessages));
+}
+
+function showCustomAlert(message, title = "GT-AnthoFix AI System", showCancel = false) {
+  return new Promise((resolve) => {
+    customAlertResolver = resolve;
+    document.getElementById('customAlertTitle').innerText = title;
+    document.getElementById('customAlertMessage').innerText = message;
+    document.getElementById('customAlertCancelBtn').style.display = showCancel ? 'inline-block' : 'none';
+    document.getElementById('customAlertModal').classList.add('active');
+  });
+}
+
+function closeCustomAlert(result) {
+  document.getElementById('customAlertModal').classList.remove('active');
+  if (customAlertResolver) {
+    customAlertResolver(result);
+    customAlertResolver = null;
+  }
+}
+
+function showToast(message, type = 'info', duration = 3000) {
+  if (currentToast) currentToast.remove();
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = `toast-bubble toast-${type}`;
+  let icon = type === 'success' ? '✅' : type === 'warning' ? '⚠️' : type === 'error' ? '❌' : 'ℹ️';
+  toast.innerHTML = `<span>${icon}</span> <span>${message}</span>`;
+  container.appendChild(toast);
+  currentToast = toast;
+
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    setTimeout(() => { toast.remove(); if (currentToast === toast) currentToast = null; }, 300);
+  }, duration);
+}
+
+function toggleTheme() {
+  const current = document.body.getAttribute('data-theme');
+  const next = current === 'dark' ? 'light' : 'dark';
+  document.body.setAttribute('data-theme', next);
+  localStorage.setItem('gt_theme', next);
+  showToast(`Theme switched to ${next.toUpperCase()} mode`, 'info');
+}
+
+function toggleMenu() {
+  checkAuthState();
+  document.getElementById('menuDrawer').classList.toggle('open');
+  document.getElementById('drawerOverlay').classList.toggle('active');
+}
+
+function switchMode(mode, event) {
+  currentMode = mode;
+  document.querySelectorAll('.mode-pill').forEach(btn => btn.classList.remove('active'));
+  if (event && event.target) {
+    event.target.classList.add('active');
+  } else {
+    const pills = document.querySelectorAll('.mode-pill');
+    if (mode === 'customer' && pills[0]) pills[0].classList.add('active');
+    if (mode === 'student' && pills[1]) pills[1].classList.add('active');
+    if (mode === 'repair' && pills[2]) pills[2].classList.add('active');
+  }
+  triggerInitialGreeting();
+}
+
+function triggerInitialGreeting() {
+  const greetings = {
+    customer: "Hello! Welcome to **G-Tech-AnthoFix (G'sTAF AI V3.0.3256)**. How can I assist you with technology, repairs, or platform services today?",
+    student: "Hello Scholar! **G'sTAF Learner Studio** is active. What science, math, or coding topic are we solving today?",
+    repair: "Greetings Team! **G'sTAF Repair & Employee Hub** is ready. What circuit diagnostic or hardware repair can I analyze?"
+  };
+  addBotMessage(greetings[currentMode] || greetings.customer, null, null, false);
+}
+
+function handleInputChange() {
+  const input = document.getElementById('userInput');
+  const btn = document.getElementById('actionBtn');
+  if (input.value.trim().length > 0) {
+    buttonState = 'send';
+    btn.innerHTML = 'Send';
+    btn.className = ''; 
+    btn.style.borderRadius = '24px';
+    btn.style.width = 'auto';
+    btn.style.height = 'auto';
+    btn.style.padding = '10px 18px';
+  } else {
+    buttonState = 'voice';
+    btn.innerHTML = '🎤';
+    btn.className = 'voice-btn' + (isRecording ? ' recording' : '');
+    btn.style.borderRadius = '50%';
+    btn.style.width = '40px';
+    btn.style.height = '40px';
+    btn.style.padding = '0';
+  }
+}
+
+function handleActionButtonClick() {
+  if (buttonState === 'send') {
+    sendMsg();
+  } else {
+    toggleVoiceInput();
+  }
+}
+
+// ADVANCED MARKDOWN, CODE & TABLE PARSER
+function parseCustomMarkdown(text) {
+  if (!text) return '';
+
+  let codeBlocks = [];
+  let tableBlocks = [];
+
+  let processedText = text.replace(/```(\w*)\n([\s\S]*?)```/g, (match, lang, code) => {
+    const id = 'code_block_' + Math.random().toString(36).substr(2, 9);
+    const language = lang || 'code';
+    codeBlocks.push({
+      id: id,
+      rawCode: code.trim(),
+      html: `
+        <div class="code-container">
+          <div class="code-header">
+            <span>${language.toUpperCase()}</span>
+            <button class="code-copy-btn" onclick="copyRawCode('${id}')">Copy Code</button>
+          </div>
+          <pre class="code-body" id="${id}">${escapeCodeHtml(code.trim())}</pre>
+        </div>`
+    });
+    return `___CODE_BLOCK_${codeBlocks.length - 1}___`;
+  });
+
+  processedText = processedText.replace(/((?:\|(?:[^\n\r|]+\|)+[\r\n]*)+)/g, (match) => {
+    const lines = match.trim().split('\n').filter(l => l.trim().length > 0);
+    if (lines.length >= 2) {
+      const tableId = 'table_' + Math.random().toString(36).substr(2, 9);
+      let headers = [];
+      let rows = [];
+
+      lines.forEach((line, idx) => {
+        if (line.includes('---')) return;
+        const cells = line.split('|').map(c => c.trim()).filter((c, i, a) => i > 0 && i < a.length - 1);
+        if (idx === 0) {
+          headers = cells;
+        } else {
+          if (cells.length > 0) rows.push(cells);
+        }
+      });
+
+      if (headers.length > 0) {
+        let tableHeaderHTML = headers.map(h => `<th>${h}</th>`).join('');
+        let tableRowsHTML = rows.map(r => `<tr>${r.map(c => `<td>${c}</td>`).join('')}</tr>`).join('');
+
+        let tableMarkup = `
+          <div class="table-container-card" id="${tableId}_container">
+            <div class="table-toolbar">
+              <span>📊 DEDICATED DATA TABLE</span>
+              <div class="table-action-group">
+                <button class="tbl-btn" onclick="exportTableToPDF('${tableId}')">📕 Download PDF</button>
+                <button class="tbl-btn" onclick="exportTableToCSV('${tableId}')">📄 CSV</button>
+                <button class="tbl-btn" onclick="copyTableHTML('${tableId}')">📋 Copy</button>
+              </div>
+            </div>
+            <div class="table-scroll-wrapper">
+              <table class="custom-data-table" id="${tableId}">
+                <thead><tr>${tableHeaderHTML}</tr></thead>
+                <tbody>${tableRowsHTML}</tbody>
+              </table>
+            </div>
+          </div>`;
+        tableBlocks.push(tableMarkup);
+        return `___TABLE_BLOCK_${tableBlocks.length - 1}___`;
+      }
+    }
+    return match;
+  });
+
+  let sanitized = processedText.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+  const urlRegex = /(https?:\/\/[^\s<]+)/g;
+  sanitized = sanitized.replace(urlRegex, '<a href="$1" target="_blank" rel="noopener noreferrer" class="chat-link">$1</a>');
+
+  sanitized = sanitized
+    .replace(/\*\*(.*?)\*\*/g, '<strong style="color:var(--text); font-weight:700;">$1</strong>')
+    .replace(/`(.*?)`/g, '<code style="background:var(--code-bg); padding:2px 6px; border-radius:4px; color:#38BDF8;">$1</code>')
+    .replace(/\n/g, '<br>');
+
+  codeBlocks.forEach((block, index) => {
+    sanitized = sanitized.replace(`___CODE_BLOCK_${index}___`, block.html);
+  });
+
+  tableBlocks.forEach((tableHtml, index) => {
+    sanitized = sanitized.replace(`___TABLE_BLOCK_${index}___`, tableHtml);
+  });
+
+  return sanitized;
+}
+
+function escapeCodeHtml(str) {
+  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function copyRawCode(containerId) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  const rawText = el.innerText || el.textContent;
+  navigator.clipboard.writeText(rawText).then(() => showToast('Code copied to clipboard!', 'success'));
+}
+
+/* DEDICATED TABLE EXPORT CONTROLLER */
+function exportTableToPDF(tableId) {
+  if (window.jspdf && window.jspdf.jsPDF) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    doc.text("G'sTAF AI - Exported Data Table", 14, 15);
+    if (typeof doc.autoTable === 'function') {
+      doc.autoTable({ html: `#${tableId}`, startY: 20, theme: 'grid' });
+    }
+    doc.save(`GSTAF_Table_${Date.now()}.pdf`);
+    showToast('Table downloaded as PDF!', 'success');
+  } else {
+    showToast('PDF generator library loading. Please retry...', 'warning');
+  }
+}
+
+function exportTableToCSV(tableId) {
+  const table = document.getElementById(tableId);
+  if (!table) return;
+  let csv = [];
+  for (let row of table.rows) {
+    let cols = Array.from(row.cells).map(cell => `"${cell.innerText.replace(/"/g, '""')}"`);
+    csv.push(cols.join(','));
+  }
+  const blob = new Blob([csv.join('\n')], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `GSTAF_Table_${Date.now()}.csv`;
+  a.click();
+  showToast('Table downloaded as CSV!', 'success');
+}
+
+function copyTableHTML(tableId) {
+  const table = document.getElementById(tableId);
+  if (!table) return;
+  navigator.clipboard.writeText(table.outerHTML).then(() => showToast('Table HTML copied!', 'success'));
+}
+
+function extractVideoQuery(text) {
+  const match = text.match(/(?:show|play|find|get)\s+(?:me\s+)?(?:a\s+)?video\s+(?:about|on|of)?\s*(.*)/i);
+  return match ? match[1].trim() : null;
+}
+
+function extractImagePrompt(text) {
+  const match = text.match(/(?:generate|create|draw|make|show|picture|photo)\s+(?:an?\s+)?(?:image|picture|photo|drawing)\s+(?:of|about)?\s*(.*)/i);
+  return match ? match[1].trim() : null;
+}
+
+async function sendMsg() {
+  const input = document.getElementById('userInput');
+  const text = input.value.trim();
+  if (!text) return;
+
+  stopTTS();
+
+  const videoSearchTerm = extractVideoQuery(text);
+  const imagePrompt = extractImagePrompt(text);
+
+  let formattedText = text;
+  if (activeReply) {
+    formattedText = `[Replying to: "${activeReply.text}"] ${text}`;
+  }
+
+  const newMsg = {
+    id: 'msg_' + Date.now(),
+    sender: 'me',
+    text: formattedText,
+    replyTo: activeReply,
+    timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    pinned: false
+  };
+
+  chatMessages.push(newMsg);
+  input.value = '';
+  handleInputChange();
+  cancelReply();
+  saveState();
+  renderChatHistory();
+
+  showTypingIndicator();
+
+  if (imagePrompt) {
+    try {
+      if (typeof puter !== 'undefined' && puter.ai && puter.ai.txt2img) {
+        let imgElement = await puter.ai.txt2img(imagePrompt);
+        removeTypingIndicator();
+        let imgSrc = imgElement ? imgElement.src : null;
+        addBotMessage(`Here is your generated visual asset for: "**${imagePrompt}**"`, null, imgSrc, true);
+      } else {
+        throw new Error("Puter AI unavailable");
+      }
+    } catch (err) {
+      removeTypingIndicator();
+      const fallbackUrl = `https://picsum.photos/seed/${encodeURIComponent(imagePrompt)}/800/600`;
+      addBotMessage(`Here is a generated graphic representation for: "**${imagePrompt}**"`, null, fallbackUrl, true);
+    }
+    return;
+  }
+
+  try {
+    const telemetry = getSystemTelemetry();
+    const systemPersona = modePrompts[currentMode] + "\n" + telemetry;
+
+    const structuredHistory = chatMessages.slice(-20).map(m => ({
+      role: m.sender === 'me' ? 'user' : 'assistant',
+      content: m.text
+    }));
+
+    const fullPrompt = `${systemPersona}\n\n` + structuredHistory.map(h => `${h.role.toUpperCase()}: ${h.content}`).join('\n') + `\nUSER: ${text}`;
+
+    if (typeof puter !== 'undefined' && puter.ai && puter.ai.chat) {
+      let response = await puter.ai.chat(fullPrompt);
+      let botReplyText = typeof response === 'string' ? response : (response.message ? response.message.content : response.toString());
+
+      removeTypingIndicator();
+      addBotMessage(botReplyText, videoSearchTerm, null, true);
+
+      if (isVoiceTriggered) {
+        speakText(botReplyText);
+        isVoiceTriggered = false;
+      }
+    } else {
+      throw new Error("Puter Chat SDK missing");
+    }
+  } catch (error) {
+    removeTypingIndicator();
+    addBotMessage("⚠️ Connection issue encountered. Please try your request again.", null, null, false);
+  }
+}
+
+function generateDynamicSuggestions(text) {
+  const lower = text.toLowerCase();
+  let suggestions = [];
+
+  if (lower.includes('repair') || lower.includes('circuit') || lower.includes('voltage') || lower.includes('multimeter')) {
+    suggestions = ["What multimeter range setting to use?", "How do I test IC pinouts?", "Common component replacement steps"];
+  } else if (lower.includes('math') || lower.includes('equation') || lower.includes('formula') || lower.includes('physics')) {
+    suggestions = ["Show a step-by-step example", "What is the key underlying formula?", "Give me a practice problem"];
+  } else if (lower.includes('code') || lower.includes('function') || lower.includes('script') || lower.includes('html')) {
+    suggestions = ["How do I debug this error?", "Can you optimize this code?", "Explain line by line"];
+  } else {
+    suggestions = ["Explain this in simpler terms", "Give me more key details", "What are the practical applications?"];
+  }
+
+  return suggestions.slice(0, 3);
+}
+
+function addBotMessage(text, videoQuery = null, generatedImageUrl = null, shouldStream = true) {
+  const botMsg = {
+    id: 'msg_' + Date.now(),
+    sender: 'bot',
+    text: text,
+    videoQuery: videoQuery,
+    generatedImageUrl: generatedImageUrl,
+    suggestions: generateDynamicSuggestions(text),
+    timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    pinned: false,
+    shouldStream: shouldStream
+  };
+
+  chatMessages.push(botMsg);
+  saveState();
+  renderChatHistory();
+}
+
+function sendSuggestion(suggestionText) {
+  document.getElementById('userInput').value = suggestionText;
+  handleInputChange();
+  sendMsg();
+}
+
+/* LONG PRESS TOUCH AND CONTEXT MENU HANDLERS */
+function handleTouchStart(msgId) {
+  longPressTimer = setTimeout(() => {
+    openContextMenu(msgId);
+  }, 600);
+}
+
+function handleTouchEnd() {
+  if (longPressTimer) {
+    clearTimeout(longPressTimer);
+    longPressTimer = null;
+  }
+}
+
+function openContextMenu(msgId) {
+  activeContextMsgId = msgId;
+  document.getElementById('contextSheetOverlay').classList.add('active');
+}
+
+function closeContextMenu() {
+  document.getElementById('contextSheetOverlay').classList.remove('active');
+  activeContextMsgId = null;
+}
+
+function triggerContextAction(action) {
+  if (!activeContextMsgId) return;
+  const targetId = activeContextMsgId;
+  closeContextMenu();
+
+  const msg = chatMessages.find(m => m.id === targetId);
+  if (!msg) return;
+
+  if (action === 'reply') {
+    setReply(targetId);
+  } else if (action === 'copy') {
+    copyText(msg.text);
+  } else if (action === 'tts') {
+    speakText(msg.text);
+  } else if (action === 'pin') {
+    togglePin(targetId);
+  }
+}
+
+function renderChatHistory() {
+  const chatBox = document.getElementById('chatBox');
+  chatBox.innerHTML = '';
+
+  const filtered = chatMessages.filter(m => m.text.toLowerCase().includes(searchQuery.toLowerCase()));
+
+  filtered.forEach((m) => {
+    const row = document.createElement('div');
+    row.className = `msg-row ${m.sender === 'me' ? 'me-row' : 'bot-row'}`;
+    row.id = m.id;
+
+    row.ondblclick = (e) => {
+      e.preventDefault();
+      setReply(m.id);
+    };
+
+    let replyMarkup = m.replyTo ? `<div class="quoted-reply-box" onclick="scrollToMsg('${m.replyTo.id}')">
+      <strong>${m.replyTo.sender === 'me' ? 'You' : 'G\'sTAF'}:</strong> ${parseCustomMarkdown(m.replyTo.text)}
+    </div>` : '';
+
+    let pinnedMarkup = m.pinned ? `<span class="pinned-badge">📌 PINNED</span>` : '';
+
+    let videoMarkup = '';
+    if (m.videoQuery) {
+      const ytEmbedUrl = `https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(m.videoQuery)}`;
+      const tiktokUrl = `https://www.tiktok.com/search?q=${encodeURIComponent(m.videoQuery)}`;
+      const googleVidUrl = `https://www.google.com/search?tbm=vid&q=${encodeURIComponent(m.videoQuery)}`;
+      videoMarkup = `
+      <div class="video-embed-card">
+        <iframe src="${ytEmbedUrl}" allowfullscreen></iframe>
+      </div>
+      <div class="video-fallback-actions">
+        <a href="${tiktokUrl}" target="_blank" class="action-chip">🎵 Search TikTok</a>
+        <a href="${googleVidUrl}" target="_blank" class="action-chip">🔍 Open Google Videos</a>
+      </div>`;
+    }
+
+    let imageMarkup = '';
+    if (m.generatedImageUrl) {
+      imageMarkup = `
+      <div class="generated-image-card">
+        <img src="${m.generatedImageUrl}" alt="AI Result" />
+      </div>`;
+    }
+
+    let suggestionsMarkup = '';
+    if (m.sender === 'bot' && m.suggestions && m.suggestions.length > 0) {
+      suggestionsMarkup = `<div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; border-top: 1px solid var(--border-light); padding-top: 6px;">
+        ${m.suggestions.map(s => `<button style="background: var(--surface-light); border: 1px solid var(--border-light); color: var(--accent-gold); padding: 3px 8px; border-radius: 10px; font-size: 11px; cursor: pointer;" onclick="sendSuggestion('${escapeQuotes(s)}')">💡 ${s}</button>`).join('')}
+      </div>`;
+    }
+
+    const msgContainer = document.createElement('div');
+    msgContainer.className = `msg ${m.sender}`;
+
+    msgContainer.addEventListener('touchstart', () => handleTouchStart(m.id), { passive: true });
+    msgContainer.addEventListener('touchend', handleTouchEnd, { passive: true });
+    msgContainer.addEventListener('touchmove', handleTouchEnd, { passive: true });
+    msgContainer.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      openContextMenu(m.id);
+    });
+
+    msgContainer.innerHTML = `${replyMarkup}<div class="msg-content-body"></div>${videoMarkup}${imageMarkup}${suggestionsMarkup}
+      <div class="msg-footer">
+        <span>${pinnedMarkup}${m.timestamp}</span>
+        <div class="msg-footer-actions">
+          <button class="reply-btn" onclick="setReply('${m.id}')">Reply</button>
+          <button class="copy-btn" onclick="copyText('${escapeQuotes(m.text)}')">Copy</button>
+          <button class="tts-btn" onclick="speakText('${escapeQuotes(m.text)}')">🔊</button>
+          <button class="pin-btn" onclick="togglePin('${m.id}')">${m.pinned ? 'Unpin' : 'Pin'}</button>
+        </div>
+      </div>
+    `;
+
+    row.appendChild(msgContainer);
+    chatBox.appendChild(row);
+
+    const bodyContainer = msgContainer.querySelector('.msg-content-body');
+
+    if (m.sender === 'bot' && m.shouldStream) {
+      m.shouldStream = false;
+      streamTextToElement(bodyContainer, m.text);
+    } else {
+      bodyContainer.innerHTML = parseCustomMarkdown(m.text);
+    }
+  });
+
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+// STREAMING CONTROLLER
+function streamTextToElement(container, fullText) {
+  const parsedHTML = parseCustomMarkdown(fullText);
+  if (parsedHTML.includes('code-container') || parsedHTML.includes('table-container-card')) {
+    container.innerHTML = parsedHTML;
+    return;
+  }
+
+  const words = fullText.split(' ');
+  container.innerHTML = '';
+  let index = 0;
+
+  function streamNextWord() {
+    if (index < words.length) {
+      const wordSpan = document.createElement('span');
+      wordSpan.className = 'word-span';
+      wordSpan.innerHTML = parseCustomMarkdown(words[index]) + ' ';
+      container.appendChild(wordSpan);
+      index++;
+      setTimeout(streamNextWord, 28);
+    } else {
+      container.innerHTML = parseCustomMarkdown(fullText);
+    }
+  }
+
+  streamNextWord();
+}
+
+function escapeQuotes(str) {
+  return str.replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, ' ');
+}
+
+function showTypingIndicator() {
+  const chatBox = document.getElementById('chatBox');
+  const indicator = document.createElement('div');
+  indicator.id = 'typingIndicator';
+  indicator.className = 'msg-row bot-row';
+  indicator.innerHTML = `
+    <div class="msg bot" style="padding: 10px 14px;">
+      <div class="typing-dots"><span></span><span></span><span></span></div>
+    </div>
+  `;
+  chatBox.appendChild(indicator);
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+function removeTypingIndicator() {
+  const el = document.getElementById('typingIndicator');
+  if (el) el.remove();
+}
+
+function copyText(text) {
+  navigator.clipboard.writeText(text).then(() => showToast('Copied to clipboard!', 'success'));
+}
+
+/* HIGH-ACCURACY CLEANED TTS PIPELINE */
+function prepareTextForSpeech(rawText) {
+  if (!rawText) return '';
+  let cleaned = rawText.replace(/```[\s\S]*?```/g, ' Code snippet omitted. ');
+  cleaned = cleaned.replace(/<[^>]*>?/gm, '');
+  cleaned = cleaned.replace(/[\#\*\_\~\`\|]/g, '');
+  cleaned = cleaned.replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g, '');
+  cleaned = cleaned.replace(/\s+/g, ' ').trim();
+  return cleaned;
+}
+
+function speakText(text) {
+  if (!('speechSynthesis' in window)) return;
+  
+  if (globalAudioState === 'LISTENING') {
+    if (recognition) recognition.stop();
+    isRecording = false;
+  }
+
+  window.speechSynthesis.cancel();
+  globalAudioState = 'SPEAKING';
+  
+  let speakableContent = prepareTextForSpeech(text);
+  if (!speakableContent) return;
+
+  const sentences = speakableContent.match(/[^.!?]+[.!?]+/g) || [speakableContent];
+  let currentSentenceIndex = 0;
+
+  function speakNextChunk() {
+    if (currentSentenceIndex < sentences.length && globalAudioState === 'SPEAKING') {
+      const utterance = new SpeechSynthesisUtterance(sentences[currentSentenceIndex].trim());
+      utterance.rate = 1.0;
+      utterance.pitch = 1.0;
+
+      utterance.onstart = () => {
+        document.getElementById('ttsControlBar').style.display = 'flex';
+        document.getElementById('ttsStatusText').innerText = "🔊 Speaking response...";
+      };
+
+      utterance.onend = () => {
+        currentSentenceIndex++;
+        if (currentSentenceIndex < sentences.length) {
+          speakNextChunk();
+        } else {
+          document.getElementById('ttsControlBar').style.display = 'none';
+          globalAudioState = 'IDLE';
+        }
+      };
+
+      utterance.onerror = () => {
+        document.getElementById('ttsControlBar').style.display = 'none';
+        globalAudioState = 'IDLE';
+      };
+
+      window.speechSynthesis.speak(utterance);
+    }
+  }
+
+  speakNextChunk();
+}
+
+function toggleTTSPause() {
+  if (window.speechSynthesis.speaking) {
+    if (isTTSPaused) {
+      window.speechSynthesis.resume();
+      isTTSPaused = false;
+      document.getElementById('ttsPauseBtn').innerText = "Pause";
+    } else {
+      window.speechSynthesis.pause();
+      isTTSPaused = true;
+      document.getElementById('ttsPauseBtn').innerText = "Play";
+    }
+  }
+}
+
+function stopTTS() {
+  window.speechSynthesis.cancel();
+  document.getElementById('ttsControlBar').style.display = 'none';
+  globalAudioState = 'IDLE';
+}
+
+function togglePin(msgId) {
+  const msg = chatMessages.find(m => m.id === msgId);
+  if (!msg) return;
+
+  const currentPinned = chatMessages.filter(m => m.pinned);
+  if (!msg.pinned && currentPinned.length >= 1) {
+    showToast("Active pin switched to selected item.", "warning");
+    chatMessages.forEach(m => m.pinned = false);
+  }
+
+  msg.pinned = !msg.pinned;
+  saveState();
+  renderChatHistory();
+}
+
+function setReply(msgId) {
+  const msg = chatMessages.find(m => m.id === msgId);
+  if (!msg) return;
+  activeReply = { id: msg.id, sender: msg.sender, text: msg.text };
+  document.getElementById('replyPreviewText').innerText = `Replying to (${msg.sender === 'me' ? 'You' : 'G\'sTAF'}): ${msg.text}`;
+  document.getElementById('replyPreview').style.display = 'flex';
+  document.getElementById('userInput').focus();
+}
+
+function cancelReply() {
+  activeReply = null;
+  document.getElementById('replyPreview').style.display = 'none';
+}
+
+function scrollToMsg(msgId) {
+  const target = document.getElementById(msgId);
+  if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function filterChatMessages() {
+  searchQuery = document.getElementById('chatSearchInput').value.trim();
+  const status = document.getElementById('filterStatus');
+  if (!searchQuery) { status.innerText = ''; } else {
+    const count = chatMessages.filter(m => m.text.toLowerCase().includes(searchQuery.toLowerCase())).length;
+    status.innerText = `${count} matches`;
+  }
+  renderChatHistory();
+}
+
+function toggleVoiceInput() {
+  const actionBtn = document.getElementById('actionBtn');
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  if (!SpeechRecognition) {
+    showToast('Speech recognition not supported on this browser.', 'error');
+    return;
+  }
+
+  stopTTS();
+
+  if (isRecording) {
+    if (recognition) recognition.stop();
+    isRecording = false;
+    globalAudioState = 'IDLE';
+    actionBtn.classList.remove('recording');
+    return;
+  }
+
+  recognition = new SpeechRecognition();
+  recognition.continuous = true;
+  recognition.interimResults = true;
+
+  recognition.onstart = () => { 
+    isRecording = true; 
+    globalAudioState = 'LISTENING';
+    isVoiceTriggered = true;
+    actionBtn.classList.add('recording'); 
+  };
+
+  recognition.onresult = (e) => { 
+    let transcript = '';
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      transcript += e.results[i][0].transcript;
+    }
+    
+    const inputEl = document.getElementById('userInput');
+    inputEl.style.color = '#10B981';
+    inputEl.value = transcript;
+    handleInputChange();
+
+    clearTimeout(voiceSilenceTimer);
+    voiceSilenceTimer = setTimeout(() => {
+      if (document.getElementById('userInput').value.trim().length > 0) {
+        if (recognition) recognition.stop();
+        inputEl.style.color = 'var(--text)';
+        sendMsg();
+      }
+    }, 2000); 
+  };
+
+  recognition.onerror = () => { 
+    actionBtn.classList.remove('recording'); 
+    isRecording = false; 
+    globalAudioState = 'IDLE';
+  };
+
+  recognition.onend = () => { 
+    actionBtn.classList.remove('recording'); 
+    isRecording = false; 
+    globalAudioState = 'IDLE';
+  };
+
+  recognition.start();
+}
+
+function openStudentCameraScanner() {
+  toggleMenu();
+  const modal = document.getElementById('cameraModal');
+  modal.classList.add('active');
+
+  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+      .then(stream => {
+        cameraStreamObj = stream;
+        document.getElementById('cameraStream').srcObject = stream;
+      })
+      .catch(err => {
+        showToast('Camera access denied or unavailable.', 'error');
+      });
+  }
+}
+
+function closeStudentCameraScanner() {
+  if (cameraStreamObj) {
+    cameraStreamObj.getTracks().forEach(track => track.stop());
+    cameraStreamObj = null;
+  }
+  document.getElementById('cameraModal').classList.remove('active');
+}
+
+function captureAndScanImage() {
+  const video = document.getElementById('cameraStream');
+  const canvas = document.getElementById('cameraCanvas');
+  const status = document.getElementById('ocrStatus');
+
+  canvas.width = video.videoWidth || 640;
+  canvas.height = video.videoHeight || 480;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+  status.innerText = "Scanning question text...";
+
+  if (!window.Tesseract) {
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js';
+    script.onload = () => runOCR(canvas, status);
+    document.head.appendChild(script);
+  } else {
+    runOCR(canvas, status);
+  }
+}
+
+function runOCR(canvas, status) {
+  Tesseract.recognize(canvas, 'eng')
+    .then(({ data: { text } }) => {
+      closeStudentCameraScanner();
+      if (text.trim().length > 0) {
+        document.getElementById('userInput').value = "Explain this question: " + text.trim();
+        handleInputChange();
+        sendMsg();
+      } else {
+        showToast("No clear text detected. Please retry.", "warning");
+      }
+    })
+    .catch(err => {
+      status.innerText = "Scan failed. Retry.";
+    });
+}
+
+function openExportModal() {
+  toggleMenu();
+  document.getElementById('exportModal').classList.add('active');
+}
+
+function closeExportModal() {
+  document.getElementById('exportModal').classList.remove('active');
+}
+
+function processExport(type) {
+  closeExportModal();
+  const pinned = chatMessages.filter(m => m.pinned);
+  
+  if (pinned.length === 0) {
+    showToast("Error: Pin the target message first before exporting!", "error");
+    return;
+  }
+
+  const rawText = pinned.map(m => `[${m.timestamp}] ${m.sender === 'me' ? 'User' : 'G\'sTAF'}:\n${m.text}`).join('\n\n---\n\n');
+
+  if (type === 'text') {
+    const blob = new Blob([rawText], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `GSTAF_Export_${Date.now()}.txt`;
+    a.click();
+    showToast('Downloaded .txt file!', 'success');
+  } else if (type === 'pdf') {
+    if (window.jspdf && window.jspdf.jsPDF) {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.text("G'sTAF AI - Exported Document", 14, 15);
+      doc.setFontSize(10);
+      doc.text(rawText, 14, 25, { maxWidth: 180 });
+      doc.save(`GSTAF_Document_${Date.now()}.pdf`);
+      showToast('Downloaded PDF document!', 'success');
+    } else {
+      showToast('PDF library loading. Please retry...', 'warning');
+    }
+  } else if (type === 'table') {
+    let rows = pinned.map(m => `<tr><td style="border:1px solid #ccc;padding:8px;">${m.timestamp}</td><td style="border:1px solid #ccc;padding:8px;">${m.sender}</td><td style="border:1px solid #ccc;padding:8px;">${m.text}</td></tr>`).join('');
+    const tableHTML = `<div class="table-container-card"><table class="custom-data-table"><thead><tr><th>Time</th><th>Sender</th><th>Content</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+    const blob = new Blob([tableHTML], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `GSTAF_Table_${Date.now()}.html`;
+    a.click();
+    showToast('Downloaded HTML Data Table!', 'success');
+  } else if (type === 'audio') {
+    speakText(pinned.map(m => m.text).join('. '));
+    showToast('Synthesizing audio export via TTS engine...', 'info');
+  }
+}
+
+function showUpdatesModal() {
+  toggleMenu();
+  document.getElementById('updatesModal').classList.add('active');
+}
+
+function closeUpdatesModal() {
+  document.getElementById('updatesModal').classList.remove('active');
+}
+
+async function clearCurrentChat() {
+  const confirmed = await showCustomAlert('Are you sure you want to clear the active chat log?', 'Clear Active Chat', true);
+  if (confirmed) {
+    chatMessages = [];
+    saveState();
+    renderChatHistory();
+    toggleMenu();
+  }
+}
+
+function showPinnedMessagesModal() {
+  const modal = document.getElementById('pinnedModal');
+  const body = document.getElementById('pinnedModalBody');
+  const pinned = chatMessages.filter(m => m.pinned);
+
+  body.innerHTML = pinned.length === 0 
+    ? '<div style="color: var(--text-muted); font-size: 12px;">No pinned messages found.</div>'
+    : pinned.map(m => `
+      <div style="background: var(--bg); padding: 10px; border-radius: 8px; border: 1px solid var(--border-light);">
+        <div style="font-size: 11px; color: var(--accent-gold); font-weight: bold; margin-bottom: 4px;">
+          ${m.sender === 'me' ? 'You' : 'G\'sTAF'} • ${m.timestamp}
+        </div>
+        <div style="font-size: 12.5px;">${parseCustomMarkdown(m.text)}</div>
+      </div>
+    `).join('');
+
+  modal.classList.add('active');
+  toggleMenu();
+}
+
+function hidePinnedMessagesModal() {
+  document.getElementById('pinnedModal').classList.remove('active');
+}
+
+document.getElementById('userInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); sendMsg(); } });
+document.addEventListener('DOMContentLoaded', initAppState);
+</script>
+</body>
+</html>
